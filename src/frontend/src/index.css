@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/assets/fonts/JetBrainsMono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.25rem;
+    --background: 0.1 0.02 250;
+    --foreground: 0.95 0.01 250;
+    --card: 0.13 0.03 250;
+    --card-foreground: 0.95 0.01 250;
+    --popover: 0.15 0.03 250;
+    --popover-foreground: 0.95 0.01 250;
+    --primary: 0.85 0.18 90;
+    --primary-foreground: 0.1 0.02 250;
+    --secondary: 0.7 0.2 150;
+    --secondary-foreground: 0.1 0.02 250;
+    --muted: 0.2 0.04 250;
+    --muted-foreground: 0.55 0.07 250;
+    --accent: 0.65 0.2 250;
+    --accent-foreground: 0.95 0.01 250;
+    --destructive: 0.6 0.25 25;
+    --destructive-foreground: 0.95 0.01 250;
+    --border: 0.3 0.1 250;
+    --input: 0.2 0.04 250;
+    --ring: 0.65 0.2 250;
+    --chart-1: 0.85 0.18 90;
+    --chart-2: 0.65 0.2 250;
+    --chart-3: 0.7 0.2 150;
+    --chart-4: 0.6 0.25 25;
+    --chart-5: 0.7 0.15 200;
+    --sidebar: 0.12 0.03 250;
+    --sidebar-foreground: 0.95 0.01 250;
+    --sidebar-primary: 0.85 0.18 90;
+    --sidebar-primary-foreground: 0.1 0.02 250;
+    --sidebar-accent: 0.65 0.2 250;
+    --sidebar-accent-foreground: 0.95 0.01 250;
+    --sidebar-border: 0.3 0.1 250;
+    --sidebar-ring: 0.65 0.2 250;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-mono;
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* Vertical slider */
+.vertical-slider {
+  -webkit-appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: 120px;
+  width: 28px;
+  cursor: pointer;
+  accent-color: oklch(0.65 0.2 250);
+}
+
+.vertical-slider::-webkit-slider-thumb {
+  background: oklch(0.65 0.2 250);
+}
+
+/* Panel base */
+.panel {
+  background: oklch(0.13 0.03 250);
+  border: 1px solid oklch(0.3 0.1 250);
+  border-radius: 2px;
+  padding: 12px;
+}
+
+.panel-title {
+  color: oklch(0.85 0.18 90);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.panel-value {
+  color: oklch(0.65 0.2 250);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.panel-red {
+  color: oklch(0.6 0.25 25);
+}
+
+.panel-green {
+  color: oklch(0.7 0.2 150);
+}
+
+/* Glow effects */
+.glow-blue {
+  box-shadow: 0 0 8px oklch(0.65 0.2 250 / 0.5), 0 0 16px
+    oklch(0.65 0.2 250 / 0.25);
+}
+
+.glow-green {
+  box-shadow: 0 0 8px oklch(0.7 0.2 150 / 0.6);
+}
+
+.glow-gold {
+  box-shadow: 0 0 8px oklch(0.85 0.18 90 / 0.4);
+}
+
+.glow-red {
+  box-shadow: 0 0 8px oklch(0.6 0.25 25 / 0.5);
+}
+
+/* Custom range slider accent */
+input[type="range"] {
+  accent-color: oklch(0.65 0.2 250);
+  cursor: pointer;
+}
+
+/* LED dot animation */
+@keyframes led-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.led-pulse {
+  animation: led-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
