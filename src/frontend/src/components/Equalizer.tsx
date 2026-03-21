@@ -6,19 +6,20 @@ interface BandDef {
   isTweeter?: boolean;
 }
 
+// Exact 12-band spec: 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 12kHz, 16kHz, 20kHz
 const BAND_LABELS: BandDef[] = [
-  { short: "SUB", freq: "40Hz", hz: 40 },
-  { short: "DEEP", freq: "60Hz", hz: 60 },
-  { short: "100Hz", freq: "100Hz", hz: 100 },
-  { short: "BASS", freq: "150Hz", hz: 150 },
-  { short: "L-MID", freq: "250Hz", hz: 250 },
-  { short: "MID", freq: "500Hz", hz: 500 },
-  { short: "M-HI", freq: "1kHz", hz: 1000 },
-  { short: "PRES", freq: "2kHz", hz: 2000 },
-  { short: "HIGHS", freq: "4kHz", hz: 4000 },
-  { short: "TREBLE", freq: "8kHz", hz: 8000, isTreble: true },
-  { short: "AIR", freq: "16kHz", hz: 16000, isTreble: true },
-  { short: "TWEET", freq: "TWEETER", hz: 12000, isTweeter: true },
+  { short: "32", freq: "32Hz", hz: 32 },
+  { short: "64", freq: "64Hz", hz: 64 },
+  { short: "125", freq: "125Hz", hz: 125 },
+  { short: "250", freq: "250Hz", hz: 250 },
+  { short: "500", freq: "500Hz", hz: 500 },
+  { short: "1k", freq: "1kHz", hz: 1000 },
+  { short: "2k", freq: "2kHz", hz: 2000 },
+  { short: "4k", freq: "4kHz", hz: 4000 },
+  { short: "8k", freq: "8kHz", hz: 8000, isTreble: true },
+  { short: "12k", freq: "12kHz", hz: 12000, isTreble: true },
+  { short: "16k", freq: "16kHz", hz: 16000, isTreble: true },
+  { short: "20k", freq: "20kHz", hz: 20000, isTweeter: true },
 ];
 
 const PRESETS: Record<string, number[]> = {
@@ -26,7 +27,7 @@ const PRESETS: Record<string, number[]> = {
   THUMP: [4, 6, 10, 6, 0, 0, 0, 0, 0, 0, 0, 0],
   "80Hz DROP": [2, 4, 6, 3, 0, 0, 0, 0, 0, 0, 0, 0],
   "VOCAL CLARITY": [0, 0, 0, 0, 2, 3, 4, 3, 2, 3, 2, 4],
-  "TREBLE LIFT": [0, 0, 0, 0, 0, 0, 2, 3, 4, 6, 5, 7],
+  "TREBLE LIFT": [0, 0, 0, 0, 0, 0, 2, 3, 4, 5, 6, 7],
   FLAT: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   RESET: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 };
@@ -67,6 +68,19 @@ export function Equalizer({
         </button>
       </div>
 
+      {/* Frequency bands label */}
+      <div
+        className="text-center"
+        style={{
+          fontSize: "7px",
+          letterSpacing: "0.15em",
+          color: "rgba(255,255,255,0.25)",
+        }}
+      >
+        32Hz · 64Hz · 125Hz · 250Hz · 500Hz · 1k · 2k · 4k · 8k · 12k · 16k ·
+        20kHz
+      </div>
+
       {/* SRS Clarity Banner */}
       <div
         className={`border px-3 py-1.5 text-center transition-all duration-500 ${
@@ -76,7 +90,9 @@ export function Equalizer({
         }`}
       >
         <span
-          className={`text-[9px] font-black tracking-[0.2em] ${srsChipOn ? "text-[oklch(var(--gold))]" : "text-muted-foreground"}`}
+          className={`text-[9px] font-black tracking-[0.2em] ${
+            srsChipOn ? "text-[oklch(var(--gold))]" : "text-muted-foreground"
+          }`}
         >
           {srsChipOn
             ? "✦ SRS CHIP ACTIVE — CLARITY ON — SIGNAL 100% CLEAN ✦"
@@ -99,7 +115,7 @@ export function Equalizer({
         ))}
       </div>
 
-      {/* Section label */}
+      {/* Section dividers */}
       <div className="flex items-center gap-2">
         <div className="flex-1 h-px bg-border" />
         <span className="text-[7px] text-muted-foreground tracking-widest">
@@ -198,38 +214,13 @@ export function Equalizer({
       {/* Tweeter status row */}
       <div className="border border-red-alert/30 bg-red-alert/5 p-2">
         <div className="flex items-center justify-between">
-          <span className="text-red-alert text-[9px] font-bold tracking-widest">
-            TWEETER CHANNEL
+          <span className="text-red-alert text-[8px] font-bold tracking-widest">
+            TWEETER — 20kHz
           </span>
-          <span
-            className={`text-[8px] font-bold px-1.5 py-0.5 ${
-              (bands[11] ?? 0) !== 0
-                ? "bg-red-alert text-navy"
-                : "bg-muted/50 text-muted-foreground"
-            }`}
-          >
-            {(bands[11] ?? 0) !== 0 ? "ACTIVE" : "FLAT"}
+          <span className="text-muted-foreground text-[8px]">
+            SRS SMOOTH · NATURAL · WARM
           </span>
         </div>
-        <div className="text-muted-foreground text-[8px] mt-0.5">
-          12kHz highshelf — SRS correction applied — smooth natural output
-        </div>
-      </div>
-
-      {/* Status row */}
-      <div className="grid grid-cols-3 gap-1">
-        {["EQ-CMD", "EQ-GAIN", "EQ-MON"].map((label) => (
-          <div
-            key={label}
-            className="border border-blue-hi/30 bg-blue-hi/5 p-1 text-center"
-          >
-            <div className="text-[7px] text-muted-foreground">{label}</div>
-            <div className="text-blue-hi text-[8px] font-mono">
-              9,000,000,000
-            </div>
-            <div className="text-green-active text-[7px] font-bold">ACTIVE</div>
-          </div>
-        ))}
       </div>
     </div>
   );

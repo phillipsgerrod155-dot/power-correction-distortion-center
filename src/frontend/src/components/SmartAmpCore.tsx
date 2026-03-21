@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { AutoSpeakerAnalyzer } from "./AutoSpeakerAnalyzer";
 
 const INSTRUMENTS = ["DRUMS", "GUITAR", "BASS GUITAR", "KEYS", "VOCALS"];
 const SPEAKER_TYPES = ["SMALL", "BIG", "CAR", "BLUETOOTH"] as const;
@@ -685,6 +686,226 @@ function App120StatusPanel() {
   );
 }
 
+// 4-Channel Output Panel
+function FourChannelOutputPanel() {
+  const [open, setOpen] = useState(false);
+  const channels = [
+    {
+      id: "ch1",
+      label: "CH1 BASS",
+      freq: "20–80Hz",
+      db: "110–120 dB",
+      ohm: "4–2 ohm stable",
+      power: "1,575,000W",
+      desc: "Deep chest-hitting fire truck level",
+    },
+    {
+      id: "ch2",
+      label: "CH2 MIDS",
+      freq: "500–1,500Hz",
+      db: "110–120 dB",
+      ohm: "—",
+      power: "1,575,000W",
+      desc: "Siren-wail cut-through punch",
+    },
+    {
+      id: "ch3",
+      label: "CH3 HIGHS",
+      freq: "4–12kHz",
+      db: "110–120 dB",
+      ohm: "Bass blocker below 200Hz",
+      power: "1,575,000W",
+      desc: "Sharp presence + air — blocks below 200Hz, passes 4kHz+",
+    },
+    {
+      id: "ch4",
+      label: "CH4 TWEETER",
+      freq: "2.8dB natural",
+      db: "—",
+      ohm: "—",
+      power: "1,575,000W",
+      desc: "Clear, not overbearing",
+    },
+  ];
+
+  return (
+    <div className="bg-card border border-border rounded p-3">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between"
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="smartamp.channel_output.toggle"
+      >
+        <PanelHeader>4-CHANNEL OUTPUT</PanelHeader>
+        <span className="text-[9px] text-muted-foreground ml-2">
+          {open ? "▲" : "▼"}
+        </span>
+      </button>
+      {open && (
+        <div className="space-y-3 mt-2">
+          <div className="flex gap-2 flex-wrap">
+            <span
+              className="text-[8px] px-2 py-0.5 rounded font-bold tracking-wider"
+              style={{
+                background: "rgba(0,255,136,0.12)",
+                color: "#00ff88",
+                border: "1px solid rgba(0,255,136,0.3)",
+              }}
+            >
+              NO RED / NO YELLOW
+            </span>
+            <span
+              className="text-[8px] px-2 py-0.5 rounded font-bold tracking-wider"
+              style={{
+                background: "rgba(0,168,255,0.12)",
+                color: "#00a8ff",
+                border: "1px solid rgba(0,168,255,0.3)",
+              }}
+            >
+              SR22 CROSSOVER ACTIVE
+            </span>
+          </div>
+          <div className="text-[8px] text-muted-foreground tracking-wider mb-1">
+            ALL CHANNELS: 9 corrections + Titanium clamping hard on every one
+          </div>
+          {channels.map((ch) => (
+            <div
+              key={ch.id}
+              className="rounded p-2 space-y-1"
+              style={{
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(0,168,255,0.15)",
+              }}
+              data-ocid={`smartamp.channel.${ch.id}.panel`}
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-[10px] font-black tracking-widest"
+                  style={{ color: "#00a8ff" }}
+                >
+                  {ch.label}
+                </span>
+                <span
+                  className="text-[8px] font-bold"
+                  style={{ color: "#00ff88" }}
+                >
+                  {ch.power}
+                </span>
+              </div>
+              <div className="text-[8px] text-muted-foreground">
+                {ch.freq} · {ch.db}
+              </div>
+              {ch.ohm !== "—" && (
+                <div
+                  className="text-[7px]"
+                  style={{ color: "rgba(212,175,55,0.7)" }}
+                >
+                  {ch.ohm}
+                </div>
+              )}
+              <div className="text-[7px] text-muted-foreground italic">
+                {ch.desc}
+              </div>
+            </div>
+          ))}
+          <div
+            className="rounded p-2 text-center"
+            style={{
+              background: "rgba(0,168,255,0.06)",
+              border: "1px solid rgba(0,168,255,0.2)",
+            }}
+          >
+            <span
+              className="text-[8px] font-bold tracking-wider"
+              style={{ color: "#00a8ff" }}
+            >
+              SR22 CROSSOVER: splits signal to all 4 channels · bass blocker
+              active on CH3 HIGHS
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Auto Speaker Analyzer Panel (uses standalone AutoSpeakerAnalyzer component)
+function AutoSpeakerAnalyzerPanel() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-card border border-border rounded p-3">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between"
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="smartamp.analyzer.toggle"
+      >
+        <PanelHeader>AUTO SPEAKER ANALYZER</PanelHeader>
+        <span className="text-[9px] text-muted-foreground ml-2">
+          {open ? "▲" : "▼"}
+        </span>
+      </button>
+      {open && (
+        <div className="mt-3">
+          <AutoSpeakerAnalyzer />
+        </div>
+      )}
+    </div>
+  );
+}
+// Amp Internal Chips Panel
+function AmpInternalChipsPanel() {
+  const [open, setOpen] = useState(false);
+  const chips = [
+    "Volume Engine",
+    "FPGA Chips",
+    "4-Channel Isolator",
+    "Smart Instrument Chip",
+    "80Hz Smart Drop Chip",
+    "Speaker Sensor Array",
+    "Clean Signal Processor",
+    "Volume Ceiling Sensor",
+    "DB Super Monitor Chip (100% stress reduction)",
+    "Hidden AMP POWER DRIVE",
+    "App 12.0 Status Panels",
+  ];
+
+  return (
+    <div className="bg-card border border-border rounded p-3">
+      <button
+        type="button"
+        className="w-full flex items-center justify-between"
+        onClick={() => setOpen((v) => !v)}
+        data-ocid="smartamp.internals.toggle"
+      >
+        <PanelHeader>AMP INTERNALS</PanelHeader>
+        <span className="text-[9px] text-muted-foreground ml-2">
+          {open ? "▲" : "▼"}
+        </span>
+      </button>
+      {open && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {chips.map((chip) => (
+            <div
+              key={chip}
+              className="text-[8px] font-bold px-2 py-1 rounded tracking-wider"
+              style={{
+                background: "rgba(0,168,255,0.08)",
+                border: "1px solid rgba(0,168,255,0.3)",
+                color: "#00a8ff",
+                boxShadow: "0 0 6px rgba(0,168,255,0.15)",
+              }}
+              data-ocid="smartamp.internals.chip"
+            >
+              ◈ {chip}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SmartAmpCore({
   volumeAtCeiling,
   currentVolume,
@@ -747,6 +968,9 @@ export function SmartAmpCore({
         />
       </div>
       <App120StatusPanel />
+      <FourChannelOutputPanel />
+      <AutoSpeakerAnalyzerPanel />
+      <AmpInternalChipsPanel />
     </div>
   );
 }

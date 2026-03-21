@@ -3,16 +3,21 @@ import { motion } from "motion/react";
 interface BatteryChargerProps {
   batteryW: number;
   systemPowered: boolean;
+  rechargeWarning?: boolean;
 }
 
 export function BatteryCharger({
   batteryW,
   systemPowered,
+  rechargeWarning = false,
 }: BatteryChargerProps) {
-  const maxW = 200_000_000;
+  const maxW = 2_000_000_000;
   const pct = Math.min(100, (batteryW / maxW) * 100);
   const isCharging = batteryW < maxW;
   const isFull = batteryW >= maxW;
+
+  // Also trigger warning internally if battery < 10%
+  const showWarning = rechargeWarning || (!isFull && pct < 10);
 
   const chargeColor = isFull ? "oklch(0.75 0.22 142)" : "oklch(0.85 0.18 90)";
 
@@ -51,7 +56,42 @@ export function BatteryCharger({
         CHARGER → BATTERY POWER FEED
       </div>
 
-      {/* Charger to battery flow visualization */}
+      {/* 15-min recharge warning */}
+      {showWarning && (
+        <motion.div
+          animate={{
+            opacity: [1, 0.6, 1],
+            boxShadow: [
+              "0 0 8px rgba(255,165,0,0.4)",
+              "0 0 20px rgba(255,165,0,0.7)",
+              "0 0 8px rgba(255,165,0,0.4)",
+            ],
+          }}
+          transition={{ duration: 1.0, repeat: Number.POSITIVE_INFINITY }}
+          style={{
+            background: "rgba(255,140,0,0.12)",
+            border: "1px solid rgba(255,165,0,0.6)",
+            borderRadius: "4px",
+            padding: "6px 10px",
+            textAlign: "center",
+            marginBottom: "12px",
+          }}
+          data-ocid="battery.warning_state"
+        >
+          <span
+            style={{
+              fontSize: "9px",
+              fontWeight: 900,
+              letterSpacing: "0.2em",
+              color: "#ff9500",
+              textShadow: "0 0 10px rgba(255,149,0,0.8)",
+            }}
+          >
+            ⚠️ RECHARGE IN 15 MIN
+          </span>
+        </motion.div>
+      )}
+
       <div
         style={{
           display: "flex",
@@ -103,7 +143,6 @@ export function BatteryCharger({
             overflow: "hidden",
           }}
         >
-          {/* Base wire */}
           <div
             style={{
               position: "absolute",
@@ -116,7 +155,6 @@ export function BatteryCharger({
               transform: "translateY(-50%)",
             }}
           />
-          {/* Flowing charge dots */}
           {isCharging &&
             [0, 1, 2, 3, 4].map((i) => (
               <motion.div
@@ -141,7 +179,6 @@ export function BatteryCharger({
                 }}
               />
             ))}
-          {/* Full charge — solid line */}
           {isFull && (
             <motion.div
               animate={{ opacity: [1, 0.5, 1] }}
@@ -185,81 +222,92 @@ export function BatteryCharger({
             }}
           >
             <motion.div
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.1 }}
+              animate={isCharging ? { opacity: [0.7, 1, 0.7] } : { opacity: 1 }}
+              transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
               style={{
-                height: "100%",
-                background: `linear-gradient(90deg, ${chargeColor}80, ${chargeColor})`,
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: `${pct}%`,
+                background: chargeColor,
                 boxShadow: `0 0 8px ${chargeColor}`,
               }}
             />
-            {isCharging && (
-              <motion.div
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: `${chargeColor}20`,
-                }}
-              />
-            )}
           </div>
           <div
             style={{
               fontSize: "0.4rem",
-              color: "oklch(0.5 0.06 100)",
-              marginTop: "2px",
+              letterSpacing: "0.1em",
+              color: chargeColor,
+              marginTop: "3px",
             }}
           >
-            BATTERY
+            {formatW(batteryW)}
           </div>
         </div>
       </div>
 
-      {/* Watt readout */}
-      <div style={{ textAlign: "center" }}>
-        <motion.div
-          animate={isCharging ? { opacity: [1, 0.7, 1] } : {}}
-          transition={{ duration: 0.5, repeat: Number.POSITIVE_INFINITY }}
-          style={{
-            fontSize: "clamp(0.6rem, 2vw, 0.8rem)",
-            fontWeight: 900,
-            letterSpacing: "0.1em",
-            color: chargeColor,
-            textShadow: `0 0 12px ${chargeColor}`,
-          }}
-        >
-          {formatW(batteryW)}
-        </motion.div>
-        <div
-          style={{
-            fontSize: "0.45rem",
-            letterSpacing: "0.15em",
-            color: "oklch(0.4 0.04 100)",
-            marginTop: "4px",
-          }}
-        >
-          {isFull
-            ? "BATTERY FULL — 200,000,000W — AMP POWERED"
-            : isCharging
-              ? "CHARGING FROM 2,000,000,000W CHARGER..."
-              : "STANDBY"}
-        </div>
-        {systemPowered && (
+      {/* Details row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "6px",
+        }}
+      >
+        {[
+          ["BATTERY", "200bi W"],
+          ["HEADROOM", "+50M W"],
+          ["WIRE", "4 GAUGE"],
+        ].map(([label, value]) => (
           <div
+            key={label}
             style={{
-              marginTop: "6px",
-              fontSize: "0.45rem",
-              letterSpacing: "0.15em",
-              color: "oklch(0.75 0.22 142)",
-              textShadow: "0 0 8px oklch(0.75 0.22 142)",
+              background: "rgba(0,0,0,0.3)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: "3px",
+              padding: "4px 6px",
+              textAlign: "center",
             }}
           >
-            ✓ AMP ONLINE — SYSTEM POWERED
+            <div
+              style={{
+                fontSize: "0.4rem",
+                color: "oklch(0.4 0.04 100)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              {label}
+            </div>
+            <div
+              style={{
+                fontSize: "0.5rem",
+                fontWeight: 700,
+                color: chargeColor,
+                marginTop: "1px",
+              }}
+            >
+              {value}
+            </div>
           </div>
-        )}
+        ))}
       </div>
+
+      {systemPowered && (
+        <div
+          style={{
+            marginTop: "10px",
+            textAlign: "center",
+            fontSize: "0.45rem",
+            letterSpacing: "0.2em",
+            color: "oklch(0.65 0.22 220)",
+            textShadow: "0 0 8px oklch(0.65 0.22 220)",
+          }}
+        >
+          ⚡ AMP RECEIVING POWER
+        </div>
+      )}
     </div>
   );
 }

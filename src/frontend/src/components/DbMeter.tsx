@@ -6,11 +6,11 @@ interface DbMeterProps {
 }
 
 export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
-  const [live, setLive] = useState(85);
-  const [peak, setPeak] = useState(85);
+  const [live, setLive] = useState(0);
+  const [peak, setPeak] = useState(0);
   const [livePulse, setLivePulse] = useState(false);
   const rafRef = useRef<number>(0);
-  const prevLiveRef = useRef<number>(85);
+  const prevLiveRef = useRef<number>(0);
   const prevPulseTimeRef = useRef<number>(0);
 
   useEffect(() => {
@@ -20,9 +20,15 @@ export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
       if (ts - lastTs < 16) return;
       lastTs = ts;
 
+      // Hard block: no movement when not playing
       if (!isPlaying) return;
 
       const data = getAnalyserData();
+
+      // Only update if we have real audio signal above noise floor
+      const hasSignal = data.live > 60;
+      if (!hasSignal) return;
+
       setLive(data.live);
       setPeak(data.peak);
 
@@ -38,41 +44,44 @@ export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
     return () => cancelAnimationFrame(rafRef.current);
   }, [getAnalyserData, isPlaying]);
 
-  // Reset meter when playback stops
+  // Hard reset to zero when playback stops
   useEffect(() => {
     if (!isPlaying) {
-      setLive(85);
-      setPeak(85);
+      setLive(0);
+      setPeak(0);
       setLivePulse(false);
-      prevLiveRef.current = 85;
+      prevLiveRef.current = 0;
     }
   }, [isPlaying]);
 
-  // Scale: 85–130 dB
   const MIN_DB = 85;
   const MAX_DB = 130;
   const RANGE = MAX_DB - MIN_DB;
 
-  const livePercent = isPlaying
-    ? Math.max(0, Math.min(100, ((live - MIN_DB) / RANGE) * 100))
-    : 0;
-  const peakPercent = isPlaying
-    ? Math.max(0, Math.min(100, ((peak - MIN_DB) / RANGE) * 100))
-    : 0;
+  const livePercent =
+    isPlaying && live > 0
+      ? Math.max(0, Math.min(100, ((live - MIN_DB) / RANGE) * 100))
+      : 0;
+  const peakPercent =
+    isPlaying && peak > 0
+      ? Math.max(0, Math.min(100, ((peak - MIN_DB) / RANGE) * 100))
+      : 0;
 
-  const barColor =
-    live > 120
-      ? "oklch(0.6 0.25 25)"
-      : live > 105
-        ? "oklch(0.85 0.18 90)"
-        : "oklch(0.7 0.2 150)";
+  // TRUE GREEN ONLY — red only when hitting max 130
+  const isAtMax = live >= 128;
+  const barColor = isAtMax ? "#ff2244" : "#00ff88";
+  const barGlow = isAtMax
+    ? "0 0 12px #ff2244, 0 0 24px rgba(255,34,68,0.5)"
+    : "0 0 8px #00ff88, 0 0 16px rgba(0,255,136,0.3)";
 
-  const ledColor = isPlaying ? (livePulse ? "#ffffff" : "#00ff88") : "#444";
-  const ledGlow = isPlaying
-    ? livePulse
-      ? "0 0 10px #fff, 0 0 20px #00ff88"
-      : "0 0 6px #00ff88"
-    : "none";
+  const ledColor =
+    isPlaying && live > 0 ? (livePulse ? "#ffffff" : "#00ff88") : "#1a1a1a";
+  const ledGlow =
+    isPlaying && live > 0
+      ? livePulse
+        ? "0 0 10px #fff, 0 0 20px #00ff88"
+        : "0 0 6px #00ff88"
+      : "none";
 
   return (
     <div className="panel space-y-2">
@@ -90,15 +99,15 @@ export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
         />
         <span
           className="text-[8px] font-bold tracking-widest"
-          style={{ color: isPlaying ? "#00ff88" : "#555" }}
+          style={{ color: isPlaying && live > 0 ? "#00ff88" : "#444" }}
         >
-          {isPlaying ? "LIVE" : "STANDBY"}
+          {isPlaying && live > 0 ? "LIVE" : "STANDBY"}
         </span>
         <span
           className="text-[8px] font-bold tracking-widest ml-auto"
-          style={{ color: isPlaying ? "oklch(0.55 0.12 142)" : "#444" }}
+          style={{ color: isPlaying && live > 0 ? "#00aa55" : "#333" }}
         >
-          {isPlaying ? "● CONNECTED" : "○ WAITING"}
+          {isPlaying && live > 0 ? "● SIGNAL ACTIVE" : "○ WAITING"}
         </span>
       </div>
 
@@ -111,12 +120,13 @@ export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
           <div
             className="text-sm font-bold font-mono"
             style={{
-              color: isPlaying ? barColor : "#555",
-              textShadow: isPlaying ? `0 0 8px ${barColor}` : "none",
+              color: isPlaying && live > 0 ? barColor : "#444",
+              textShadow:
+                isPlaying && live > 0 ? `0 0 8px ${barColor}` : "none",
               transition: "color 0.05s",
             }}
           >
-            {isPlaying ? `${live.toFixed(1)} dB` : "-- dB"}
+            {isPlaying && live > 0 ? `${live.toFixed(1)} dB` : "0.0 dB"}
           </div>
         </div>
         <div className="space-y-0.5">
@@ -125,72 +135,77 @@ export function DbMeter({ getAnalyserData, isPlaying }: DbMeterProps) {
           </div>
           <div
             className="text-sm font-bold font-mono"
-            style={{ color: isPlaying ? "#00ff88" : "#555" }}
+            style={{ color: isPlaying && peak > 0 ? "#00ff88" : "#444" }}
           >
-            {isPlaying ? `${peak.toFixed(1)} dB` : "-- dB"}
-          </div>
-        </div>
-        <div className="space-y-0.5 ml-auto">
-          <div className="text-muted-foreground text-[8px] tracking-widest">
-            dBFS
-          </div>
-          <div
-            className="text-base font-black font-mono"
-            style={{
-              color: isPlaying ? barColor : "#555",
-              textShadow: isPlaying ? `0 0 12px ${barColor}88` : "none",
-            }}
-          >
-            {isPlaying ? live.toFixed(1) : "--"}
+            {isPlaying && peak > 0 ? `${peak.toFixed(1)} dB` : "0.0 dB"}
           </div>
         </div>
       </div>
 
-      {/* Main bar */}
-      <div className="relative">
-        <div className="h-6 bg-muted/30 rounded-sm overflow-hidden border border-border">
+      {/* Main bar — always starts at zero */}
+      <div
+        className="relative rounded overflow-hidden"
+        style={{
+          height: "16px",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${livePercent}%`,
+            background: barColor,
+            boxShadow: livePercent > 0 ? barGlow : "none",
+            transition: "width 0.04s, background 0.1s",
+            borderRadius: "2px",
+          }}
+        />
+        {/* Peak marker */}
+        {peakPercent > 0 && (
           <div
-            className="h-full"
             style={{
-              width: `${livePercent}%`,
-              background: isPlaying
-                ? `linear-gradient(to right, oklch(0.7 0.2 150), ${barColor})`
-                : "transparent",
-              boxShadow: isPlaying ? `0 0 8px ${barColor}88` : "none",
-              transition: "width 0.016s linear",
-            }}
-          />
-        </div>
-        {/* Peak marker — only when playing */}
-        {isPlaying && (
-          <div
-            className="absolute top-0 h-6 w-0.5"
-            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
               left: `${peakPercent}%`,
-              background: "#ffffff",
-              boxShadow: "0 0 4px #fff",
+              width: "2px",
+              background: "#00ff88",
+              boxShadow: "0 0 4px #00ff88",
+              transition: "left 0.1s",
             }}
           />
         )}
       </div>
 
-      {/* Scale ticks */}
+      {/* Scale */}
       <div className="flex justify-between">
-        {[85, 90, 95, 100, 105, 110, 115, 120, 125, 130].map((v) => (
-          <span key={v} className="text-[7px] text-muted-foreground">
+        {[85, 95, 105, 115, 125, 130].map((v) => (
+          <span
+            key={v}
+            className="text-[7px] font-mono"
+            style={{ color: v >= 128 ? "#ff2244" : "#444" }}
+          >
             {v}
           </span>
         ))}
       </div>
 
-      <div
-        className="text-center text-[8px] font-bold tracking-wider"
-        style={{ color: isPlaying ? "#00ff88" : "#555" }}
-      >
-        {isPlaying
-          ? "85–130 dB ● REACTIVE ● LIVE SIGNAL"
-          : "85–130 dB ● LOAD AUDIO TO ACTIVATE"}
-      </div>
+      {/* Silence indicator */}
+      {!isPlaying || live === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: "8px",
+            color: "#333",
+            letterSpacing: "0.2em",
+            padding: "4px 0",
+          }}
+          data-ocid="dbmeter.standby_state"
+        >
+          ▬▬▬ SILENCE · ZERO SIGNAL ▬▬▬
+        </div>
+      ) : null}
     </div>
   );
 }

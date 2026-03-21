@@ -1,22 +1,33 @@
 # Power Correction Distortion Center
 
 ## Current State
-Version 41 deployed. Deploy 1 complete: phantom gain stripped, 4 gauge wire, 250W correction fuses, 2x150W amp fuses, super strong noise reducer, Clean Signal Drive per-mode boosters, DB meter fixed (flat in silence).
+Version 43 deployed. Contains all major features from the build history including corrections, fuse board, amp, EQ, clean signal drive, etc.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Nothing new to add
+- Auto Speaker Analyzer panel: 9 stages, 2.1 second delay, must hit 12.1 rating before music plays, ONN RUGGED locked to 4Ω
+- Power switch color update: GREEN = off, BLUE = on
+- 15-minute recharge warning in battery/power display
+- Titanium amp visual upgrade: 16 animated heatsink fins, GP badge, 70,000W base x 90 multiplier = 6,300,000W total, 4 channels each 1,575,000W
+- dB meter fix: TRUE GREEN only, shows zero/flat in silence
+- Smooth Loud Booster 3 color zones: green/gold/bright gold
+- 12-band EQ extending from 32Hz through 20kHz
 
 ### Modify
-- **Deploy 2 - Fix 7:** DB Node Indicator fully live -- wire it to the real-time analyser so distortion, clipping, and noise floor values react to every beat
-- **Deploy 2 - Fix 8:** Corrections scale pushed all the way to 150 -- ensure correction scale and 150 Billion fuse milestones climb to full 150, not stopping at 110 or 130
-- **Deploy 2 - Fix 9:** Kick Drum sliders fully wired -- Thump, Kick dB, and 80Hz SAFT Drop sliders fully send their values to the audio engine in real time
+- Corrections order locked to: Easy Limitor, System Clean Drive, Stabilizer, Stabilizer Helper, Monitor, Commander, Brick Wall Helper, Brick Wall, Titanium Overdrive
+- Each correction fuse labeled 250W
+- dB meter must show zero/flat in silence (no phantom movement)
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Wire DbNodeIndicator to live analyser data (distortion RMS, clipping detection, noise floor)
-2. Fix CorrectionForceDisplay and MasterFuse150B so correction scale and 150B fuse milestones climb all the way to 150 based on volume and liveDb
-3. Verify KickDrum component's sliders (thump, kick, drop) fully fire audioEngine.setKickThump, setKickKick, setKickDrop on every change
+1. Add AutoSpeakerAnalyzer component with 9-stage analysis, 2.1s delay, 12.1 rating threshold, ONN RUGGED 4Ω lock
+2. Update PowerSwitch to GREEN=off, BLUE=on
+3. Add 15-minute recharge warning to BatteryCharger/PowerDisplay
+4. Update AmpPanel with heatsink animation (16 fins), GP badge, correct wattage display
+5. Fix DbMeter to show TRUE GREEN only and zero in silence
+6. Update SmoothLoudBooster with 3 color zones (green/gold/bright gold)
+7. Extend Equalizer to 12 bands: 32Hz, 64Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 12kHz, 16kHz, 20kHz
+8. Lock correction order display in CorrectionSystem

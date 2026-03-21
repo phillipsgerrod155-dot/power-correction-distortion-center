@@ -9,10 +9,6 @@ interface AmpPanelProps {
   onAmpPowerDriveChange: (v: number) => void;
 }
 
-const CHANNELS = ["CH1 - TWEETER", "CH2 - MIDS", "CH3 - HIGHS", "CH4 - BASS"];
-// Amp gets 2x 150W fuses
-const AMP_FUSES = [1, 2];
-
 export function AmpPanel({
   loudnessSafety,
   onLoudnessSafetyToggle,
@@ -24,79 +20,283 @@ export function AmpPanel({
   const [standby, setStandby] = useState(false);
   const [hiddenVisible, setHiddenVisible] = useState(false);
 
-  const driveMultiplier = (3.5 + (ampPowerDrive / 100) * 4.5).toFixed(1);
+  const isOn = !standby;
 
   return (
-    <div className="panel space-y-2">
-      {/* Header badges */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="bg-gold text-navy text-[9px] font-black px-2 py-0.5 tracking-widest">
-          HBS
-        </span>
-        <span className="text-foreground text-[9px] tracking-widest">
-          SERIES
-        </span>
-        <span className="text-muted-foreground text-[9px]">
-          12-SOURCE POWER
-        </span>
-        <button
-          type="button"
-          className="ml-auto bg-blue-hi/20 border border-blue-hi text-blue-hi text-[9px] px-2 py-0.5 tracking-wide hover:bg-blue-hi/30 transition-colors"
+    <div
+      className="panel space-y-3"
+      style={{
+        boxShadow: isOn
+          ? "0 0 30px rgba(0,168,255,0.25), inset 0 0 20px rgba(0,168,255,0.05)"
+          : "0 0 8px rgba(0,0,0,0.3)",
+        border: isOn
+          ? "1px solid rgba(0,168,255,0.35)"
+          : "1px solid rgba(80,80,80,0.3)",
+        transition: "all 0.4s ease",
+      }}
+    >
+      {/* GP Badge row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              background: "linear-gradient(135deg, #d4af37, #ffd700, #c8a000)",
+              color: "#000",
+              fontSize: "10px",
+              fontWeight: 900,
+              padding: "3px 8px",
+              borderRadius: "3px",
+              letterSpacing: "0.15em",
+              boxShadow:
+                "0 0 10px rgba(212,175,55,0.6), 0 0 20px rgba(212,175,55,0.3)",
+            }}
+          >
+            GP
+          </span>
+          <span className="text-[9px] text-muted-foreground tracking-widest">
+            CLASS A+ | B+ | C+D
+          </span>
+        </div>
+        <div
+          style={{
+            background: isOn ? "rgba(0,168,255,0.15)" : "rgba(80,80,80,0.1)",
+            border: `1px solid ${isOn ? "rgba(0,168,255,0.5)" : "rgba(80,80,80,0.3)"}`,
+            borderRadius: "3px",
+            padding: "2px 8px",
+            fontSize: "8px",
+            color: isOn ? "#00a8ff" : "#555",
+            letterSpacing: "0.2em",
+            fontWeight: 700,
+          }}
         >
-          MULTI-SRC
-        </button>
+          {isOn ? "● ONLINE" : "○ STANDBY"}
+        </div>
       </div>
 
       {/* Main title */}
-      <div className="border-t border-border pt-2">
-        <div className="text-gold text-2xl font-black tracking-widest">
-          SRS2202
+      <div className="text-center py-2">
+        <div
+          className="font-black tracking-[0.2em] mb-1"
+          style={{
+            fontSize: "clamp(14px, 3vw, 20px)",
+            color: isOn ? "#00a8ff" : "#555",
+            textShadow: isOn
+              ? "0 0 20px #00a8ff, 0 0 40px rgba(0,168,255,0.5), 0 0 80px rgba(0,168,255,0.2)"
+              : "none",
+            transition: "all 0.4s ease",
+          }}
+        >
+          TITANIUM POWER INDUSTRY AMP
         </div>
-        <div className="text-foreground text-xs font-bold tracking-[0.3em]">
-          DB AMPLIFIER
-        </div>
-        <div className="text-muted-foreground text-[9px] tracking-widest">
-          GP / AUDIO DESIGNER
+        <div
+          className="text-[9px] tracking-[0.35em]"
+          style={{ color: isOn ? "rgba(0,168,255,0.6)" : "#444" }}
+        >
+          SRS2202 — 4-CHANNEL DRIVE SYSTEM
         </div>
       </div>
 
-      {/* Power specs */}
-      <div className="flex gap-3 flex-wrap">
-        <span className="text-gold text-[10px] font-bold">
-          60,000,000W SAFT
-        </span>
-        <span className="text-foreground text-[9px]">
-          10,000W / 4CH | HEADROOM 9,000W
+      {/* 16 Heatsink Fins */}
+      <div
+        className="flex items-end justify-center gap-0.5 py-2"
+        style={{
+          background: isOn ? "rgba(0,168,255,0.03)" : "rgba(0,0,0,0.2)",
+          borderRadius: "4px",
+          border: `1px solid ${isOn ? "rgba(0,168,255,0.15)" : "rgba(80,80,80,0.1)"}`,
+        }}
+      >
+        {([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as const).map(
+          (i) => {
+            const height = 20 + Math.sin((i / 15) * Math.PI) * 14;
+            return (
+              <div
+                key={i}
+                style={{
+                  width: "6px",
+                  height: `${height}px`,
+                  background: isOn
+                    ? "linear-gradient(to top, rgba(0,168,255,0.9), rgba(0,168,255,0.2))"
+                    : "rgba(80,80,80,0.3)",
+                  borderRadius: "1px",
+                  boxShadow: isOn ? "0 0 6px rgba(0,168,255,0.7)" : "none",
+                  animation: isOn
+                    ? `finPulse ${1.2 + i * 0.08}s ease-in-out infinite`
+                    : "none",
+                  transition: "all 0.3s ease",
+                }}
+              />
+            );
+          },
+        )}
+        <span
+          style={{
+            fontSize: "7px",
+            color: isOn ? "rgba(0,168,255,0.5)" : "#444",
+            letterSpacing: "0.15em",
+            marginLeft: "6px",
+            alignSelf: "center",
+          }}
+        >
+          16 FINS
         </span>
       </div>
 
-      {/* SAFT banner */}
-      <div className="bg-blue-hi/10 border border-blue-hi px-3 py-1.5 text-center">
-        <span className="text-blue-hi text-[9px] font-bold tracking-widest">
-          SAFT MODE ACTIVE — REGULATED 120 dB CEILING
-        </span>
+      {/* Wattage formula display */}
+      <div
+        style={{
+          background: isOn ? "rgba(0,168,255,0.06)" : "rgba(0,0,0,0.3)",
+          border: `1px solid ${isOn ? "rgba(0,168,255,0.25)" : "rgba(80,80,80,0.1)"}`,
+          borderRadius: "4px",
+          padding: "8px 10px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "clamp(9px, 1.8vw, 12px)",
+            fontWeight: 900,
+            color: isOn ? "#00a8ff" : "#555",
+            letterSpacing: "0.12em",
+            textShadow: isOn ? "0 0 12px #00a8ff" : "none",
+          }}
+        >
+          BASE: 70,000W × 90 = 6,300,000W TOTAL
+        </div>
       </div>
 
-      {/* Channels */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-        {CHANNELS.map((ch) => (
-          <div key={ch} className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-hi glow-blue led-pulse" />
-            <span className="text-foreground text-[9px]">{ch}</span>
+      {/* 4-channel display */}
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ["CH1", "BASS", "1,575,000W"],
+          ["CH2", "MIDS", "1,575,000W"],
+          ["CH3", "HIGHS", "1,575,000W"],
+          ["CH4", "TWEETER", "1,575,000W"],
+        ].map(([ch, label, watts]) => (
+          <div
+            key={ch}
+            className="rounded p-2"
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              border: `1px solid ${isOn ? "rgba(0,168,255,0.2)" : "rgba(80,80,80,0.08)"}`,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "7px",
+                color: isOn ? "rgba(0,168,255,0.6)" : "#444",
+                letterSpacing: "0.15em",
+                marginBottom: "2px",
+              }}
+            >
+              {ch} — {label}
+            </div>
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 900,
+                color: isOn ? "#00a8ff" : "#555",
+                textShadow: isOn ? "0 0 6px #00a8ff" : "none",
+              }}
+            >
+              {watts}
+            </div>
+            <div
+              style={{
+                height: "3px",
+                background: isOn ? "rgba(0,168,255,0.3)" : "rgba(80,80,80,0.2)",
+                borderRadius: "1px",
+                marginTop: "4px",
+                boxShadow: isOn ? "0 0 4px rgba(0,168,255,0.4)" : "none",
+              }}
+            />
           </div>
         ))}
       </div>
 
-      {/* Fuses — 2x 150W */}
-      <div className="border-t border-border pt-2">
-        <div className="text-muted-foreground text-[8px] mb-1 tracking-widest">
-          AMP FUSES — 150W
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          ["BASE POWER", "70,000W"],
+          ["MULTIPLIER", "90x"],
+          ["TOTAL OUTPUT", "6,300,000W"],
+          ["BATTERY INPUT", "80,000W"],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            className="rounded p-1.5"
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div className="text-[7px] text-muted-foreground tracking-widest">
+              {label}
+            </div>
+            <div
+              className="text-[10px] font-black tracking-wider mt-0.5"
+              style={{ color: isOn ? "#00a8ff" : "#555" }}
+            >
+              {value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* AMP DRIVE */}
+      <div
+        className="rounded p-2"
+        style={{
+          background: "rgba(0,0,0,0.3)",
+          border: "1px solid rgba(0,168,255,0.15)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[8px] text-muted-foreground tracking-widest">
+            AMP DRIVE
+          </span>
+          <span
+            className="text-[11px] font-black"
+            style={{ color: isOn ? "#00a8ff" : "#555" }}
+          >
+            {ampPowerDrive > 0 ? ampPowerDrive : 72}
+          </span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {AMP_FUSES.map((n) => (
-            <div key={n} className="flex flex-col items-center gap-0.5">
-              <div className="w-full h-2 bg-red-alert/80 rounded-sm" />
-              <span className="text-[8px] text-red-alert">150W</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={ampPowerDrive > 0 ? ampPowerDrive : 72}
+          onChange={(e) => onAmpPowerDriveChange(Number(e.target.value))}
+          className="w-full cursor-pointer"
+          style={{ accentColor: "#00a8ff" }}
+          data-ocid="amp.toggle"
+        />
+      </div>
+
+      {/* Channel fuses */}
+      <div>
+        <div className="text-[8px] text-muted-foreground tracking-widest mb-2">
+          AMP FUSES — 2 × 150W
+        </div>
+        <div className="grid grid-cols-4 gap-1">
+          {["CH1\nBASS", "CH2\nMIDS", "CH3\nHIGHS", "CH4\nTWEET"].map((ch) => (
+            <div key={ch} className="flex flex-col items-center gap-0.5">
+              <div
+                className="w-full h-2 rounded-sm"
+                style={{
+                  background: isOn ? "#00a8ff" : "#444",
+                  boxShadow: isOn ? "0 0 4px #00a8ff" : "none",
+                }}
+              />
+              <span
+                className="text-[7px]"
+                style={{ color: isOn ? "#00a8ff" : "#555" }}
+              >
+                150W
+              </span>
+              <span className="text-[6px] text-muted-foreground text-center whitespace-pre-line leading-tight">
+                {ch}
+              </span>
             </div>
           ))}
         </div>
@@ -106,7 +306,7 @@ export function AmpPanel({
       <div className="border border-gold/30 bg-gold/5 p-2 space-y-1">
         <div className="flex items-center justify-between">
           <span className="text-gold text-[9px] font-bold tracking-widest">
-            LOUDNESS SAFETY EXTREME
+            LOUDNESS SAFETY
           </span>
           <button
             type="button"
@@ -126,7 +326,7 @@ export function AmpPanel({
         </div>
       </div>
 
-      {/* Rock Concert */}
+      {/* Rock Concert + Standby row */}
       <div className="flex items-center gap-2 flex-wrap">
         <button
           type="button"
@@ -140,9 +340,6 @@ export function AmpPanel({
         >
           ROCK CONCERT
         </button>
-        <span className="text-muted-foreground text-[8px]">
-          BASS / CAR DROP 80 HZ
-        </span>
         <button
           type="button"
           onClick={() => setStandby((s) => !s)}
@@ -153,198 +350,77 @@ export function AmpPanel({
           }`}
           data-ocid="amp.standby_button"
         >
-          STANDBY
+          {standby ? "STANDBY" : "ACTIVE"}
         </button>
       </div>
 
-      {/* Power status */}
-      <div className="border-t border-border pt-2 space-y-0.5">
-        <div className="text-blue-hi text-[9px]">
-          AUTO-SENSOR REGULATED — 10,000W / 4CH / 9,000W HEADROOM
-        </div>
-        <div className="text-muted-foreground text-[9px]">0W DELIVERING</div>
-      </div>
-
-      {/* Power indicator */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-green-active glow-green" />
-          <span className="text-green-active text-[9px] font-bold">
-            POWER ON
-          </span>
-        </div>
-        <div className="w-8 h-8 rounded-full border-2 border-blue-hi bg-blue-hi/10 glow-blue flex items-center justify-center">
-          <div className="w-4 h-4 rounded-full bg-blue-hi/40" />
-        </div>
-        <span className="text-blue-hi text-[9px] font-bold tracking-wider">
-          SRS-2202
-        </span>
-      </div>
-
-      {/* Battery */}
-      <div className="border border-green-active/40 bg-green-active/5 p-2">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px]">⚡</span>
-          <span className="text-muted-foreground text-[8px] tracking-widest">
-            BATTERY
-          </span>
-          <div className="flex-1 h-2.5 bg-green-active/20 rounded-sm overflow-hidden">
-            <div className="h-full w-full bg-green-active transition-all" />
-          </div>
-          <span className="text-green-active text-[8px] font-bold">
-            FULLY CHARGED
-          </span>
-          <button
-            type="button"
-            className="text-[8px] border border-green-active/50 text-green-active px-1.5 py-0.5 hover:bg-green-active/10 transition-colors"
-          >
-            SAVE
-          </button>
+      {/* PREAMP note */}
+      <div
+        className="rounded p-2 text-center"
+        style={{
+          background: "rgba(0,168,255,0.04)",
+          border: "1px solid rgba(0,168,255,0.12)",
+        }}
+      >
+        <div
+          className="text-[8px] tracking-widest"
+          style={{ color: "rgba(0,168,255,0.6)" }}
+        >
+          PREAMP CONTROLS: Bass / Mids / Treble — linked to EQ
         </div>
       </div>
 
-      {/* Hidden reveal trigger */}
+      {/* Hidden reveal */}
       <div className="flex justify-center pt-1">
         <button
           type="button"
           onClick={() => setHiddenVisible((v) => !v)}
           className="text-[8px] text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors tracking-[0.4em] select-none cursor-default"
           data-ocid="amp.open_modal_button"
-          title=""
         >
           · · ·
         </button>
       </div>
 
-      {/* Hidden AMP POWER DRIVE panel */}
-      <div
-        style={{
-          maxHeight: hiddenVisible ? 280 : 0,
-          overflow: "hidden",
-          transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
-        }}
-      >
+      {hiddenVisible && (
         <div
-          className="rounded-sm p-3 space-y-3"
+          className="rounded-sm p-3"
           style={{
             background: "rgba(0,0,0,0.7)",
-            border: "1px solid rgba(212,175,55,0.18)",
+            border: "1px solid rgba(0,168,255,0.18)",
           }}
           data-ocid="amp.panel"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <span
-              style={{
-                color: "rgba(212,175,55,0.55)",
-                fontSize: 8,
-                letterSpacing: "0.35em",
-                fontFamily: "'JetBrains Mono', monospace",
-              }}
-            >
-              ◈ AMP POWER DRIVE
-            </span>
-            <span
-              style={{
-                color: "rgba(212,175,55,0.3)",
-                fontSize: 7,
-                letterSpacing: "0.2em",
-              }}
-            >
-              [HIDDEN]
-            </span>
-          </div>
-
-          {/* Drive multiplier display */}
           <div
-            style={{
-              color: "rgba(212,175,55,0.8)",
-              fontSize: 14,
-              fontWeight: 900,
-              letterSpacing: "0.1em",
-              textAlign: "center",
-              textShadow:
-                ampPowerDrive > 0 ? "0 0 12px rgba(212,175,55,0.4)" : "none",
-            }}
+            className="text-[8px] text-center tracking-[0.25em] mb-2"
+            style={{ color: "rgba(0,168,255,0.6)" }}
           >
-            {driveMultiplier}x AMP DRIVE
+            ◈ TITANIUM POWER DRIVE — HIDDEN
           </div>
-
-          {/* Vertical slider */}
-          <div className="flex flex-col items-center gap-2">
-            <div
-              className="relative flex flex-col items-center"
-              style={{ height: 80 }}
-            >
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={ampPowerDrive}
-                onChange={(e) => onAmpPowerDriveChange(Number(e.target.value))}
-                className="w-4 cursor-pointer"
-                style={{
-                  writingMode: "vertical-lr",
-                  direction: "rtl",
-                  height: 80,
-                  accentColor: "rgba(212,175,55,0.8)",
-                }}
-                data-ocid="amp.toggle"
-              />
-            </div>
-            <div
-              style={{
-                color: "rgba(212,175,55,0.4)",
-                fontSize: 7,
-                letterSpacing: "0.15em",
-              }}
-            >
-              {ampPowerDrive}%
-            </div>
-          </div>
-
-          {/* Instruction text */}
           <div
-            style={{
-              color: "rgba(255,255,255,0.3)",
-              fontSize: 7,
-              letterSpacing: "0.18em",
-              textAlign: "center",
-              lineHeight: 1.7,
-            }}
+            className="text-[11px] font-black text-center mb-2"
+            style={{ color: "#00a8ff" }}
           >
-            POWER BEHIND THE MUSIC
-            <br />
-            STRONG CLEAR INSTRUCTION
+            {ampPowerDrive}% DRIVE
           </div>
-
-          {/* Active indicator */}
-          {ampPowerDrive > 0 && (
-            <div
-              className="flex items-center justify-center gap-2"
-              data-ocid="amp.success_state"
-            >
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{
-                  background: "rgba(74,222,128,0.6)",
-                  boxShadow: "0 0 6px rgba(74,222,128,0.4)",
-                  animation: "pulse 2.5s ease-in-out infinite",
-                }}
-              />
-              <span
-                style={{
-                  color: "rgba(74,222,128,0.5)",
-                  fontSize: 7,
-                  letterSpacing: "0.25em",
-                }}
-              >
-                AMP POWER ACTIVE
-              </span>
-            </div>
-          )}
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={ampPowerDrive}
+            onChange={(e) => onAmpPowerDriveChange(Number(e.target.value))}
+            className="w-full cursor-pointer"
+            style={{ accentColor: "#00a8ff" }}
+          />
         </div>
-      </div>
+      )}
+
+      <style>{`
+        @keyframes finPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.45; }
+        }
+      `}</style>
     </div>
   );
 }

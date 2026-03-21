@@ -60,6 +60,8 @@ function loadSaved<T>(key: string, fallback: T): T {
 function AppMain() {
   const audioEngine = useAudioEngine();
   const [introComplete, setIntroComplete] = useState(false);
+  const [rechargeWarning, setRechargeWarning] = useState(false);
+  const [rechargeCountdown, setRechargeCountdown] = useState(900);
   const [systemPowered, setSystemPowered] = useState(() =>
     loadSaved("systemPowered", false),
   );
@@ -69,7 +71,7 @@ function AppMain() {
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFirstRender = useRef(true);
 
-  const [volume, setVolume] = useState(() => loadSaved("volume", 30));
+  const [volume, setVolume] = useState(() => loadSaved("volume", 91));
   const [boostLevel, setBoostLevel] = useState(() =>
     loadSaved("boostLevel", 0),
   );
@@ -98,40 +100,31 @@ function AppMain() {
   );
   const [corrections, setCorrections] = useState(() =>
     loadSaved("corrections", [
+      { name: "EASY LIMITOR", strength: "0.1dB — ALWAYS ON", on: true },
       {
-        name: "COMMANDER",
-        strength:
-          "6,872,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000 XP",
+        name: "SYSTEM CLEAN DRIVE",
+        strength: "0.1dB DEFAULT — SLIDER",
         on: true,
       },
+      { name: "STABILIZER", strength: "34.36 Octodecillion XP", on: true },
       {
-        name: "GAIN CORRECTION",
-        strength:
-          "6,872,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000 XP",
+        name: "STABILIZER HELPER",
+        strength: "34.36 Octodecillion XP",
         on: true,
       },
+      { name: "MONITOR", strength: "34.36 Octodecillion XP", on: true },
+      { name: "COMMANDER", strength: "34.36 Octodecillion XP", on: true },
       {
-        name: "MONITOR",
-        strength:
-          "6,872,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000 XP",
+        name: "BRICK WALL HELPER",
+        strength: "34.36 Octodecillion XP",
         on: true,
       },
-      {
-        name: "STABILIZER",
-        strength:
-          "6,872,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000 XP",
-        on: true,
-      },
-      {
-        name: "SIGNAL CLEANER",
-        strength:
-          "6,872,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000 XP",
-        on: true,
-      },
-      { name: "HARD CORRECTION", strength: "10x FORCE", on: true },
-      { name: "STABILIZER HELPER", strength: "BRICK WALL EASER", on: true },
       { name: "BRICK WALL", strength: "FINAL CEILING", on: true },
-      { name: "x10 SMART CHIP", strength: "x10 MULTIPLIER", on: true },
+      {
+        name: "TITANIUM OVERDRIVE",
+        strength: "150,000,000,000 BI FUSE — COMMANDS ALL",
+        on: true,
+      },
     ]),
   );
   const [kickThump, setKickThump] = useState(() => loadSaved("kickThump", 0));
@@ -329,7 +322,7 @@ function AppMain() {
 
     // Already powered from saved state — skip charge animation
     if (systemPowered) {
-      setBatteryW(200_000_000);
+      setBatteryW(2_000_000_000);
       audioEngine.setActiveCorrectionCount(9);
       return;
     }
@@ -337,7 +330,7 @@ function AppMain() {
     let frame: number;
     const start = performance.now();
     const duration = 3000;
-    const maxW = 200_000_000;
+    const maxW = 2_000_000_000;
     const threshold = 50_000;
     let powered = false;
     const animate = (now: number) => {
@@ -697,15 +690,34 @@ function AppMain() {
     setVolume(5);
   }, [audioEngine]);
 
+  // ── Recharge countdown effect ──
+  useEffect(() => {
+    if (!rechargeWarning) return;
+    setRechargeCountdown(900);
+    const interval = setInterval(() => {
+      setRechargeCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setRechargeWarning(false);
+          return 900;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rechargeWarning]);
+
   // ── Power Switch: manual override ──
   const handlePowerSwitchToggle = useCallback(() => {
     if (systemPowered) {
       setSystemPowered(false);
       audioEngine.setVolume(0);
       setVolume(0);
+      setRechargeWarning(true);
     } else {
       if (batteryW >= 50_000) {
         setSystemPowered(true);
+        setRechargeWarning(false);
         audioEngine.setActiveCorrectionCount(9);
       }
     }
@@ -846,7 +858,77 @@ function AppMain() {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 overflow-x-hidden">
+      {/* Recharge warning banner */}
+      {rechargeWarning && (
+        <div
+          style={{
+            position: "fixed",
+            top: "49px",
+            left: 0,
+            right: 0,
+            zIndex: 60,
+            background: "rgba(255,170,0,0.95)",
+            color: "#000",
+            textAlign: "center",
+            padding: "10px",
+            fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: 900,
+            fontSize: "0.65rem",
+            letterSpacing: "0.2em",
+          }}
+        >
+          ⚠ 15-MINUTE RECHARGE REQUIRED — BATTERY CHARGING &nbsp;|&nbsp;{" "}
+          {Math.floor(rechargeCountdown / 60)}:
+          {String(rechargeCountdown % 60).padStart(2, "0")} REMAINING
+        </div>
+      )}
+
+      <main
+        className="max-w-screen-xl mx-auto px-4 overflow-x-hidden"
+        style={{ position: "relative" }}
+      >
+        {/* Dark overlay when powered off (after intro) */}
+        {introComplete && !systemPowered && batteryW >= 50_000 && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              top: "49px",
+              zIndex: 40,
+              background: "rgba(0,0,0,0.88)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "16px",
+              pointerEvents: "none",
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "clamp(14px, 3vw, 22px)",
+                fontWeight: 900,
+                letterSpacing: "0.3em",
+                color: "oklch(0.75 0.22 142)",
+                textShadow: "0 0 20px oklch(0.75 0.22 142)",
+                textAlign: "center",
+                padding: "0 20px",
+              }}
+            >
+              🟢 FLIP POWER SWITCH TO ACTIVATE
+            </div>
+            <div
+              style={{
+                fontSize: "0.55rem",
+                letterSpacing: "0.2em",
+                color: "oklch(0.5 0.08 142)",
+              }}
+            >
+              BATTERY CHARGED — SYSTEM READY
+            </div>
+          </div>
+        )}
         {/* System Power Gate Overlay */}
         {introComplete && !systemPowered && batteryW < 50_000 && (
           <div
@@ -1172,6 +1254,7 @@ function AppMain() {
               <BatteryCharger
                 batteryW={batteryW}
                 systemPowered={systemPowered}
+                rechargeWarning={rechargeWarning}
               />
               <PowerDisplay batteryW={batteryW} systemPowered={systemPowered} />
             </div>

@@ -1,17 +1,15 @@
 const FUSE_NAMES = [
-  "COMMANDER",
-  "GAIN CORRECTION",
-  "MONITOR",
+  "EASY LIMITOR",
+  "SYSTEM CLEAN DRIVE",
   "STABILIZER",
-  "SIGNAL CLEANER",
-  "HARD CORRECTION",
   "STABILIZER HELPER",
+  "MONITOR",
+  "COMMANDER",
+  "BRICK WALL HELPER",
   "BRICK WALL",
-  "x10 SMART CHIP",
 ];
 
-const FULL_STOMP_FORCE =
-  "85,900,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000";
+const TITANIUM_FUSE = "TITANIUM OVERDRIVE";
 
 interface FuseBoardProps {
   corrections?: { name: string; on: boolean }[];
@@ -30,9 +28,14 @@ export function FuseBoard({
     return activeCorrectionCount > idx;
   });
 
-  const allOn = fuseStates.every(Boolean);
-  const anyOn = fuseStates.some(Boolean);
-  const onCount = fuseStates.filter(Boolean).length;
+  const titaniumOn = corrections
+    ? (corrections.find((c) => c.name === TITANIUM_FUSE)?.on ??
+      activeCorrectionCount >= 9)
+    : activeCorrectionCount >= 9;
+
+  const allOn = fuseStates.every(Boolean) && titaniumOn;
+  const anyOn = fuseStates.some(Boolean) || titaniumOn;
+  const onCount = fuseStates.filter(Boolean).length + (titaniumOn ? 1 : 0);
   const masterOn = activeCorrectionCount > 0;
 
   return (
@@ -51,60 +54,70 @@ export function FuseBoard({
           }
         />
         <span className="text-gold text-xs font-black tracking-[0.25em]">
-          250W FUSE BOARD — ALL SYSTEMS
+          FUSE BOARD — 120 FUSES TOTAL — 120W EACH
         </span>
       </div>
 
-      {/* 150B Titanium Master Fuse */}
+      {/* Titanium 150B Master Fuse */}
       <div
-        className="rounded border-2 p-3 mb-4 flex items-center justify-between"
+        className="rounded border-2 p-3 mb-4"
         style={{
-          borderColor: masterOn ? "#00ff88" : "#555",
-          background: masterOn ? "rgba(0,255,136,0.06)" : "rgba(80,80,80,0.06)",
-          boxShadow: masterOn
-            ? "0 0 18px rgba(0,255,136,0.35), inset 0 0 12px rgba(0,255,136,0.08)"
+          borderColor: titaniumOn ? "#00a8ff" : "#555",
+          background: titaniumOn
+            ? "rgba(0,168,255,0.06)"
+            : "rgba(80,80,80,0.06)",
+          boxShadow: titaniumOn
+            ? "0 0 18px rgba(0,168,255,0.35), inset 0 0 12px rgba(0,168,255,0.08)"
             : "none",
-          animation: masterOn
+          animation: titaniumOn
             ? "titaniumPulse 1.6s ease-in-out infinite"
             : "none",
         }}
         data-ocid="fuseboard.panel"
       >
-        <div>
-          <div
-            className="font-black text-[11px] tracking-[0.2em]"
-            style={{ color: masterOn ? "#00ff88" : "#888" }}
-          >
-            150B TITANIUM MASTER FUSE
+        <div className="flex items-center justify-between">
+          <div>
+            <div
+              className="font-black text-[11px] tracking-[0.2em]"
+              style={{ color: titaniumOn ? "#00a8ff" : "#888" }}
+            >
+              TITANIUM OVERDRIVE
+            </div>
+            <div className="text-[9px] text-muted-foreground tracking-wider mt-0.5">
+              150,000,000,000 BI FUSE — COMMANDS ALL
+            </div>
           </div>
-          <div className="text-[9px] text-muted-foreground tracking-wider mt-0.5">
-            MASTER OVERRIDE — ALL SYSTEMS
+          <div className="flex flex-col items-end gap-1">
+            <div
+              className="w-4 h-4 rounded-full"
+              style={{
+                background: titaniumOn ? "#00a8ff" : "#555",
+                boxShadow: titaniumOn
+                  ? "0 0 12px #00a8ff, 0 0 24px rgba(0,168,255,0.6)"
+                  : "none",
+                animation: titaniumOn
+                  ? "ledPulse 1.2s ease-in-out infinite"
+                  : "none",
+              }}
+            />
+            <span
+              className="text-[9px] font-bold tracking-widest"
+              style={{ color: titaniumOn ? "#00a8ff" : "#888" }}
+            >
+              {titaniumOn ? "● LIVE" : "○ STANDBY"}
+            </span>
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <div
-            className="w-4 h-4 rounded-full"
-            style={{
-              background: masterOn ? "#00ff88" : "#555",
-              boxShadow: masterOn
-                ? "0 0 12px #00ff88, 0 0 24px rgba(0,255,136,0.6)"
-                : "none",
-              animation: masterOn
-                ? "ledPulse 1.2s ease-in-out infinite"
-                : "none",
-            }}
-          />
-          <span
-            className="text-[9px] font-bold tracking-widest"
-            style={{ color: masterOn ? "#00ff88" : "#888" }}
-          >
-            {masterOn ? "● LIVE" : "○ STANDBY"}
-          </span>
+        <div
+          className="text-[8px] mt-2 tracking-wider"
+          style={{ color: titaniumOn ? "rgba(0,168,255,0.7)" : "#555" }}
+        >
+          Each X added = Titanium 6x stronger, every correction 5x stronger
         </div>
       </div>
 
-      {/* Fuse grid — 9 fuses @ 250W each */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      {/* Fuse grid — 8 fuses @ 120W each */}
+      <div className="grid grid-cols-4 gap-2 mb-4">
         {FUSE_NAMES.map((name, idx) => {
           const isLit = fuseStates[idx];
           return (
@@ -135,15 +148,15 @@ export function FuseBoard({
                   transition: "background 0.25s, box-shadow 0.25s",
                 }}
               />
-              <div className="text-[8px] text-center text-muted-foreground tracking-wider leading-tight">
+              <div className="text-[7px] text-center text-muted-foreground tracking-wider leading-tight">
                 {name}
               </div>
-              <div className="text-[8px] text-gold font-bold">250W</div>
+              <div className="text-[8px] text-gold font-bold">120W</div>
               <div
                 className="text-[7px] tracking-widest font-black"
                 style={{ color: isLit ? "#00ff88" : "#666" }}
               >
-                {isLit ? "INTACT ● LIVE" : "BLOWN ○ OFF"}
+                {isLit ? "● LIVE" : "○ OFF"}
               </div>
             </div>
           );
@@ -151,7 +164,7 @@ export function FuseBoard({
       </div>
 
       {/* Footer count */}
-      <div className="border-t border-border pt-3 text-center mb-3">
+      <div className="border-t border-border pt-3 text-center">
         <span
           className="text-[9px] tracking-[0.2em] font-bold"
           style={{ color: allOn ? "#00ff88" : anyOn ? "#ffaa00" : "#666" }}
@@ -162,46 +175,15 @@ export function FuseBoard({
               ? `${onCount}/9 FUSES ACTIVE — SYSTEM PROTECTED`
               : "ALL CORRECTIONS OFF — FUSES ON STANDBY"}
         </span>
+        {masterOn && (
+          <div
+            className="text-[8px] mt-1"
+            style={{ color: "rgba(0,168,255,0.6)" }}
+          >
+            150,000,000,000 BI FUSE COMMANDING ALL 8 CORRECTIONS
+          </div>
+        )}
       </div>
-
-      {/* Full Stomp Force — only when all 9 on */}
-      {allOn && (
-        <div
-          className="rounded border-2 p-3"
-          style={{
-            borderColor: "#ffd700",
-            background: "rgba(255,215,0,0.06)",
-            boxShadow:
-              "0 0 20px rgba(255,215,0,0.3), inset 0 0 12px rgba(255,215,0,0.06)",
-            animation: "goldPulse 2s ease-in-out infinite",
-          }}
-          data-ocid="fuseboard.panel"
-        >
-          <div
-            className="text-[9px] font-black tracking-[0.2em] text-center mb-2"
-            style={{ color: "#ffd700" }}
-          >
-            ⚡ FULL STOMP FORCE ENGAGED ⚡
-          </div>
-          <div
-            className="text-[8px] font-bold text-center leading-relaxed"
-            style={{
-              color: "#ffd700",
-              wordBreak: "break-all",
-              overflowWrap: "break-word",
-              maxWidth: "100%",
-            }}
-          >
-            {FULL_STOMP_FORCE}
-          </div>
-          <div
-            className="text-[7px] text-center mt-1 tracking-widest"
-            style={{ color: "rgba(255,215,0,0.6)" }}
-          >
-            ALL 9 CORRECTIONS STOMPING HARD
-          </div>
-        </div>
-      )}
 
       <style>{`
         @keyframes ledPulse {
@@ -211,10 +193,6 @@ export function FuseBoard({
         @keyframes titaniumPulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.7; }
-        }
-        @keyframes goldPulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(255,215,0,0.3), inset 0 0 12px rgba(255,215,0,0.06); }
-          50% { opacity: 0.85; box-shadow: 0 0 30px rgba(255,215,0,0.5), inset 0 0 18px rgba(255,215,0,0.1); }
         }
       `}</style>
     </div>

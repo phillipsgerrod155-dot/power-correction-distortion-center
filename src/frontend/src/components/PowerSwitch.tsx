@@ -22,9 +22,10 @@ export function PowerSwitch({
           ? `${(w / 1_000).toFixed(1)}k W`
           : `${w} W`;
 
-  const activeColor = "oklch(0.75 0.22 142)";
-  const inactiveColor = "oklch(0.65 0.22 25)";
-  const color = systemPowered ? activeColor : inactiveColor;
+  // GREEN when OFF, electric BLUE when ON
+  const offColor = "#00e060"; // bright green
+  const onColor = "#00aaff"; // electric blue
+  const color = systemPowered ? onColor : offColor;
 
   return (
     <div
@@ -35,7 +36,7 @@ export function PowerSwitch({
         border: `2px solid ${color}`,
         borderRadius: "8px",
         padding: "20px",
-        boxShadow: `0 0 30px ${color}40`,
+        boxShadow: `0 0 30px ${color}50, 0 0 60px ${color}20`,
         transition: "all 0.3s ease",
       }}
     >
@@ -45,12 +46,38 @@ export function PowerSwitch({
           letterSpacing: "0.25em",
           fontWeight: 900,
           color,
-          textShadow: `0 0 10px ${color}`,
+          textShadow: `0 0 12px ${color}`,
           textAlign: "center",
           marginBottom: "16px",
         }}
       >
         MASTER POWER SWITCH — BATTERY CONNECTED
+      </div>
+
+      {/* State label */}
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: "8px",
+          fontSize: "0.65rem",
+          letterSpacing: "0.2em",
+          fontWeight: 900,
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            padding: "3px 12px",
+            borderRadius: "4px",
+            border: `1px solid ${color}80`,
+            background: `${color}15`,
+            color,
+            textShadow: `0 0 10px ${color}`,
+            boxShadow: `0 0 12px ${color}30`,
+          }}
+        >
+          {systemPowered ? "🔵 BLUE = SYSTEM ON" : "🟢 GREEN = SYSTEM OFF"}
+        </span>
       </div>
 
       {/* Big power button */}
@@ -67,18 +94,16 @@ export function PowerSwitch({
           onClick={onToggle}
           data-ocid="power.toggle"
           style={{
-            width: "80px",
-            height: "80px",
+            width: "90px",
+            height: "90px",
             borderRadius: "50%",
-            background: systemPowered
-              ? `radial-gradient(circle, ${activeColor}33, ${activeColor}11)`
-              : `radial-gradient(circle, ${inactiveColor}33, ${inactiveColor}11)`,
+            background: `radial-gradient(circle, ${color}25, ${color}08)`,
             border: `3px solid ${color}`,
-            boxShadow: `0 0 30px ${color}80, 0 0 60px ${color}40`,
+            boxShadow: `0 0 40px ${color}80, 0 0 80px ${color}30, inset 0 0 20px ${color}10`,
             cursor: "pointer",
-            fontSize: "2rem",
+            fontSize: "2.2rem",
             color,
-            textShadow: `0 0 20px ${color}`,
+            textShadow: `0 0 24px ${color}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -91,7 +116,7 @@ export function PowerSwitch({
 
       {/* Status */}
       <motion.div
-        animate={{ opacity: [1, 0.8, 1] }}
+        animate={{ opacity: [1, 0.75, 1] }}
         transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
         style={{
           fontSize: "0.55rem",
@@ -110,7 +135,7 @@ export function PowerSwitch({
             : "● SYSTEM DEAD — PRESS TO ACTIVATE"}
       </motion.div>
 
-      {/* Battery connection wire */}
+      {/* Battery wire */}
       <div
         style={{
           display: "flex",
@@ -136,9 +161,9 @@ export function PowerSwitch({
             flex: 1,
             height: "3px",
             background: systemPowered
-              ? `linear-gradient(90deg, ${activeColor}, oklch(0.85 0.18 90), ${activeColor})`
+              ? `linear-gradient(90deg, ${onColor}, oklch(0.85 0.18 90), ${onColor})`
               : "oklch(0.2 0.02 100)",
-            boxShadow: systemPowered ? `0 0 8px ${activeColor}` : "none",
+            boxShadow: systemPowered ? `0 0 8px ${onColor}` : "none",
             borderRadius: "2px",
             transition: "all 0.3s ease",
           }}
@@ -156,28 +181,35 @@ export function PowerSwitch({
       </div>
 
       {/* Power check indicators */}
-      <div
-        style={{
-          display: "flex",
-          gap: "6px",
-          justifyContent: "center",
-          fontSize: "0.45rem",
-          letterSpacing: "0.15em",
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ color: hasEnoughPower ? activeColor : inactiveColor }}>
-          {hasEnoughPower ? "✓" : "✗"} BATTERY CHECK{" "}
-          {hasEnoughPower ? "PASSED" : "FAILED"}
-        </div>
-        <div style={{ color: "oklch(0.4 0.04 100)" }}>|</div>
-        <div
-          style={{
-            color: systemPowered ? activeColor : "oklch(0.4 0.04 100)",
-          }}
-        >
-          {systemPowered ? "✓" : "○"} AMP CONNECTED
-        </div>
+      <div style={{ display: "flex", gap: "8px" }}>
+        {[
+          { label: "4 GAUGE WIRE", ok: true },
+          { label: "BATTERY FEED", ok: batteryW > 0 },
+          { label: "50K THRESHOLD", ok: hasEnoughPower },
+        ].map(({ label, ok }) => (
+          <div
+            key={label}
+            style={{
+              flex: 1,
+              textAlign: "center",
+              padding: "4px",
+              borderRadius: "3px",
+              background: ok ? `${offColor}12` : "rgba(80,80,80,0.1)",
+              border: `1px solid ${ok ? `${offColor}50` : "rgba(80,80,80,0.2)"}`,
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.4rem",
+                letterSpacing: "0.1em",
+                color: ok ? offColor : "#444",
+                fontWeight: 700,
+              }}
+            >
+              {ok ? "✓" : "○"} {label}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
